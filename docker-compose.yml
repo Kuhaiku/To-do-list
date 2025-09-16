@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=136.248.87.149
+      - DB_USER=root
+      - DB_PASSWORD=Raposo88125442@@
+      - DB_DATABASE=sistemaloja
+      - DB_PORT=3009
+    command: npm start
