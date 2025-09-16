@@ -7,11 +7,6 @@ services:
       - "3000:3000"
     volumes:
       - .:/app
-    environment:
-      - DB_HOST=loja_mega_xerox_db
-      - DB_USER=root
-      - DB_PASSWORD=Raposo88125442@@
-      - DB_DATABASE=sistemaloja
-      - DB_PORT=3306
-
+   
     command: npm start
+
