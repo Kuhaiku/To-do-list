@@ -8,9 +8,10 @@ services:
     volumes:
       - .:/app
     environment:
-      - DB_HOST=136.248.87.149
+      - DB_HOST=loja_mega_xerox_db
       - DB_USER=root
       - DB_PASSWORD=Raposo88125442@@
       - DB_DATABASE=sistemaloja
-      - DB_PORT=3009
+      - DB_PORT=3306
+
     command: npm start
