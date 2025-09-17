@@ -49,34 +49,17 @@
                 <div class="card shadow-sm p-4 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 id="titulo-painel" class="card-title text-white mb-0">Tarefas Pendentes</h5>
-                        <button id="toggle-view-btn" class="btn btn-secondary">Mostrar Concluídas</button>
+                        <div class="d-flex">
+                            <div class="btn-group me-2" role="group">
+                                <button type="button" class="btn btn-outline-light" id="ordem-prazo-btn">Data</button>
+                                <button type="button" class="btn btn-outline-light" id="ordem-urgencia-btn">Críticas</button>
+                            </div>
+                            <button id="toggle-view-btn" class="btn btn-secondary">Mostrar Concluídas</button>
+                        </div>
                     </div>
 
-                    <div class="row g-3" id="painel-tarefas-pendentes">
-                        <% tarefas.forEach(tarefa => { %>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <div class="card post-it urgencia-<%= tarefa.urgencia %>" data-bs-toggle="modal" data-bs-target="#tarefaModal" data-id="<%= tarefa.id %>" data-servico="<%= tarefa.servico %>" data-prazo="<%= new Date(tarefa.prazo).toLocaleDateString('pt-BR') %>" data-urgencia="<%= tarefa.urgencia %>" data-descricao="<%= tarefa.descricao %>">
-                                    <div class="card-body">
-                                        <h6 class="card-title fw-bold"><%= tarefa.servico %></h6>
-                                        <p class="card-text text-muted"><%= tarefa.descricao %></p>
-                                    </div>
-                                </div>
-                            </div>
-                        <% }) %>
-                    </div>
-                    
-                    <div class="row g-3 hidden" id="painel-tarefas-concluidas">
-                        <% concluidas.forEach(tarefa => { %>
-                            <div class="col-6 col-sm-4 col-md-3">
-                                <div class="card post-it urgencia-<%= tarefa.urgencia %>" data-bs-toggle="modal" data-bs-target="#tarefaModal" data-id="<%= tarefa.id %>" data-servico="<%= tarefa.servico %>" data-prazo="<%= new Date(tarefa.prazo).toLocaleDateString('pt-BR') %>" data-urgencia="<%= tarefa.urgencia %>" data-descricao="<%= tarefa.descricao %>">
-                                    <div class="card-body">
-                                        <h6 class="card-title fw-bold"><%= tarefa.servico %></h6>
-                                        <p class="card-text text-muted"><%= tarefa.descricao %></p>
-                                    </div>
-                                </div>
-                            </div>
-                        <% }) %>
-                    </div>
+                    <div class="row g-3" id="painel-tarefas">
+                        </div>
                 </div>
             </div>
         </div>
@@ -111,29 +94,72 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const socket = io();
-        const painelPendentes = document.getElementById('painel-tarefas-pendentes');
-        const painelConcluidas = document.getElementById('painel-tarefas-concluidas');
+        const painelTarefas = document.getElementById('painel-tarefas');
         const toggleBtn = document.getElementById('toggle-view-btn');
         const tituloPainel = document.getElementById('titulo-painel');
+        const ordemPrazoBtn = document.getElementById('ordem-prazo-btn');
+        const ordemUrgenciaBtn = document.getElementById('ordem-urgencia-btn');
         const tarefaModal = document.getElementById('tarefaModal');
 
         let isViewingConcluidas = false;
+        let ordemAtual = 'data';
 
+        const fetchAndRenderTarefas = async () => {
+            let url = `/api/tarefas?ordem=${ordemAtual}`;
+            if (isViewingConcluidas) {
+                url += '&concluidas=true';
+            }
+            const response = await fetch(url);
+            const { tarefas, concluidas } = await response.json();
+            
+            painelTarefas.innerHTML = '';
+            
+            const listaParaRenderizar = isViewingConcluidas ? concluidas : tarefas;
+
+            listaParaRenderizar.forEach(tarefa => {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-sm-4 col-md-3';
+                col.innerHTML = `
+                    <div class="card post-it urgencia-${tarefa.urgencia}" data-bs-toggle="modal" data-bs-target="#tarefaModal" 
+                        data-id="${tarefa.id}" 
+                        data-servico="${tarefa.servico}" 
+                        data-prazo="${new Date(tarefa.prazo).toLocaleDateString('pt-BR')}" 
+                        data-urgencia="${tarefa.urgencia}" 
+                        data-descricao="${tarefa.descricao || ''}">
+                        <div class="card-body">
+                            <h6 class="card-title fw-bold">${tarefa.servico}</h6>
+                            <p class="card-text text-muted">${tarefa.descricao || ''}</p>
+                        </div>
+                    </div>
+                `;
+                painelTarefas.appendChild(col);
+            });
+        };
+
+        // Eventos de clique para ordenar
+        ordemPrazoBtn.addEventListener('click', () => {
+            ordemAtual = 'data';
+            fetchAndRenderTarefas();
+        });
+        ordemUrgenciaBtn.addEventListener('click', () => {
+            ordemAtual = 'criticas';
+            fetchAndRenderTarefas();
+        });
+
+        // Evento de clique para alternar visualização
         toggleBtn.addEventListener('click', () => {
             isViewingConcluidas = !isViewingConcluidas;
             if (isViewingConcluidas) {
-                painelPendentes.classList.add('hidden');
-                painelConcluidas.classList.remove('hidden');
                 toggleBtn.textContent = 'Mostrar Pendentes';
                 tituloPainel.textContent = 'Tarefas Concluídas';
             } else {
-                painelPendentes.classList.remove('hidden');
-                painelConcluidas.classList.add('hidden');
                 toggleBtn.textContent = 'Mostrar Concluídas';
                 tituloPainel.textContent = 'Tarefas Pendentes';
             }
+            fetchAndRenderTarefas();
         });
 
+        // Configuração do modal
         tarefaModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             const id = button.getAttribute('data-id');
@@ -161,36 +187,11 @@
             formConcluir.action = `/concluir/${id}`;
             formDeletar.action = `/deletar/${id}`;
         });
-
-        const renderTarefa = (tarefa) => {
-            const col = document.createElement('div');
-            col.className = 'col-6 col-sm-4 col-md-3';
-            col.innerHTML = `
-                <div class="card post-it urgencia-${tarefa.urgencia}" data-bs-toggle="modal" data-bs-target="#tarefaModal" 
-                    data-id="${tarefa.id}" 
-                    data-servico="${tarefa.servico}" 
-                    data-prazo="${new Date(tarefa.prazo).toLocaleDateString('pt-BR')}" 
-                    data-urgencia="${tarefa.urgencia}" 
-                    data-descricao="${tarefa.descricao || ''}">
-                    <div class="card-body">
-                        <h6 class="card-title fw-bold">${tarefa.servico}</h6>
-                        <p class="card-text text-muted">${tarefa.descricao || ''}</p>
-                    </div>
-                </div>
-            `;
-            return col;
-        };
-
-        socket.on('atualizar_pendentes', (tarefas) => {
-            painelPendentes.innerHTML = '';
-            tarefas.forEach(tarefa => painelPendentes.appendChild(renderTarefa(tarefa)));
-        });
-
-        socket.on('atualizar_concluidas', (concluidas) => {
-            painelConcluidas.innerHTML = '';
-            concluidas.forEach(concluida => painelConcluidas.appendChild(renderTarefa(concluida)));
-        });
+        
+        socket.on('atualizar_quadro', fetchAndRenderTarefas);
+        
+        // Renderização inicial
+        document.addEventListener('DOMContentLoaded', fetchAndRenderTarefas);
     </script>
 </body>
-
 </html>
