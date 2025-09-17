@@ -38,12 +38,28 @@ app.get('/', async (req, res) => {
     connection.end();
 });
 
+app.get('/api/tarefas', async (req, res) => {
+    const { ordem } = req.query;
+    let orderBy;
+
+    if (ordem === 'criticas') {
+        orderBy = 'urgencia DESC, prazo ASC';
+    } else {
+        orderBy = 'prazo ASC, urgencia DESC';
+    }
+
+    const connection = await getDBConnection();
+    const [tarefas] = await connection.execute(`SELECT * FROM tarefas WHERE concluido = FALSE ORDER BY ${orderBy}`);
+    const [concluidas] = await connection.execute('SELECT * FROM tarefas WHERE concluido = TRUE ORDER BY prazo DESC');
+    res.json({ tarefas, concluidas });
+    connection.end();
+});
+
 app.post('/adicionar', async (req, res) => {
     const { servico, prazo, urgencia, descricao } = req.body;
     const connection = await getDBConnection();
     await connection.execute('INSERT INTO tarefas (servico, prazo, urgencia, descricao) VALUES (?, ?, ?, ?)', [servico, prazo, urgencia, descricao]);
-    const [tarefas] = await connection.execute('SELECT * FROM tarefas WHERE concluido = FALSE ORDER BY prazo ASC, urgencia DESC');
-    io.emit('atualizar_pendentes', tarefas);
+    io.emit('atualizar_quadro');
     connection.end();
     res.redirect('/');
 });
@@ -52,10 +68,7 @@ app.post('/concluir/:id', async (req, res) => {
     const { id } = req.params;
     const connection = await getDBConnection();
     await connection.execute('UPDATE tarefas SET concluido = NOT concluido WHERE id = ?', [id]);
-    const [tarefas] = await connection.execute('SELECT * FROM tarefas WHERE concluido = FALSE ORDER BY prazo ASC, urgencia DESC');
-    const [concluidas] = await connection.execute('SELECT * FROM tarefas WHERE concluido = TRUE ORDER BY prazo DESC');
-    io.emit('atualizar_pendentes', tarefas);
-    io.emit('atualizar_concluidas', concluidas);
+    io.emit('atualizar_quadro');
     connection.end();
     res.redirect('/');
 });
@@ -64,10 +77,7 @@ app.post('/deletar/:id', async (req, res) => {
     const { id } = req.params;
     const connection = await getDBConnection();
     await connection.execute('DELETE FROM tarefas WHERE id = ?', [id]);
-    const [tarefas] = await connection.execute('SELECT * FROM tarefas WHERE concluido = FALSE ORDER BY prazo ASC, urgencia DESC');
-    const [concluidas] = await connection.execute('SELECT * FROM tarefas WHERE concluido = TRUE ORDER BY prazo DESC');
-    io.emit('atualizar_pendentes', tarefas);
-    io.emit('atualizar_concluidas', concluidas);
+    io.emit('atualizar_quadro');
     connection.end();
     res.redirect('/');
 });
