@@ -9,7 +9,6 @@
 </head>
 <body class="bg-dark">
     <div class="container-fluid py-4">
-        <a href="https://loja-mega-xerox.velmc0.easypanel.host/index.html">Voltar</a>
         <h1 class="text-center mb-4 text-white">Quadro de Serviços</h1>
         <div class="row">
             <div class="col-md-4">
@@ -106,9 +105,6 @@
 
         const fetchAndRenderTarefas = async () => {
             let url = `/api/tarefas?ordem=${ordemAtual}`;
-            if (isViewingConcluidas) {
-                url += '&concluidas=true';
-            }
             const response = await fetch(url);
             const { tarefas, concluidas } = await response.json();
             
@@ -127,7 +123,10 @@
                         data-urgencia="${tarefa.urgencia}" 
                         data-descricao="${tarefa.descricao || ''}">
                         <div class="card-body">
-                            <h6 class="card-title fw-bold">${tarefa.servico}</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="card-title fw-bold flex-grow-1 me-2">${tarefa.servico}</h6>
+                                <small class="text-muted text-nowrap">${new Date(tarefa.prazo).toLocaleDateString('pt-BR')}</small>
+                            </div>
                             <p class="card-text text-muted">${tarefa.descricao || ''}</p>
                         </div>
                     </div>
