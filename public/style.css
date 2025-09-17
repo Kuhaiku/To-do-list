@@ -8,34 +8,48 @@ body {
     color: #e0e0e0;
 }
 .post-it {
-    /* Altura removida para que se expanda com o conteúdo */
     width: 250px;
+    height: 250px; /* Altura fixa novamente */
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
     position: relative;
-    color: #121212; /* Letras escuras para contraste */
+    color: #121212;
 }
 .post-it:hover {
     transform: translateY(-5px);
     box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
 }
 .post-it.urgencia-1 {
-    background-color: #A2E1A2; /* Verde vivo */
+    background-color: #A2E1A2;
     border-color: #79C279;
 }
 .post-it.urgencia-2 {
-    background-color: #FFEC92; /* Amarelo vivo */
+    background-color: #FFEC92;
     border-color: #D3B957;
 }
 .post-it.urgencia-3 {
-    background-color: #FF6961; /* Vermelho vivo */
+    background-color: #FF6961;
     border-color: #D43939;
 }
 .post-it .card-body {
     padding: 1rem;
-    /* Removido o corte de texto para permitir quebra de linha */
+    /* Revertendo para o comportamento de corte de texto */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
+/* Revertendo o alinhamento para o card-body */
+.post-it .card-body h6,
+.post-it .card-body p {
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limita a 2 linhas */
+    -webkit-box-orient: vertical;
+}
+
 .modal-content {
     background-color: #1e1e1e;
     color: #e0e0e0;
