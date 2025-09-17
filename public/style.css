@@ -8,8 +8,8 @@ body {
     color: #e0e0e0;
 }
 .post-it {
+    /* Altura removida para que se expanda com o conteúdo */
     width: 250px;
-    height: 250px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
@@ -34,9 +34,7 @@ body {
 }
 .post-it .card-body {
     padding: 1rem;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    /* Removido o corte de texto para permitir quebra de linha */
 }
 .modal-content {
     background-color: #1e1e1e;
